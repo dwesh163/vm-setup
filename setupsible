@@ -7,7 +7,7 @@ help () {
     fatal <<HELP_MSG
 Usage:
 
-    ./jarvisible XXX
+    ./setupsible XXX
 
   $0 [ -t sometag ] [ ... ]
 HELP_MSG
