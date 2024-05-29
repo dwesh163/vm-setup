@@ -1,0 +1,23 @@
+- name: Setup Server
+  hosts: all
+  gather_facts: no
+  roles:
+      - name: ../roles/setup
+  tags:
+      - setup
+
+- name: Setup traefik
+  hosts: all
+  gather_facts: no
+  roles:
+      - name: ../roles/traefik
+  tags:
+      - traefik
+
+- name: Monitoring
+  hosts: all
+  gather_facts: no
+  roles:
+      - name: ../roles/monitoring
+  tags:
+      - monitoring

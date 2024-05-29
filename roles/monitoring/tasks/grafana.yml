@@ -1,0 +1,42 @@
+- name: Create Folder /srv/grafana/data if not exist
+  ansible.builtin.file:
+    path: /srv/grafana/data
+    mode: 0777
+    state: directory
+  become: true
+
+- name: Copy configuration file
+  ansible.builtin.copy:
+    dest: /srv
+    src: roles/monitoring/files/grafana
+    mode: 0644
+  become: true
+
+- name: Create Grafana container
+  ansible.builtin.docker_container:
+    name: grafana
+    restart_policy: always
+    image: grafana/grafana:10.1.6
+    networks:
+      # - name: traefik_network
+      - name: monitoring
+    volumes:
+      - /srv/grafana/data:/var/lib/grafana
+      - /srv/grafana/provisioning:/etc/grafana/provisioning
+      - /srv/grafana/dashboards:/var/lib/grafana/dashboards
+    env:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+    ports:
+      - "3000:3000"
+    # labels:
+    #   traefik.enable: "true"
+    #   traefik.http.routers.grafana_web.rule: "Host(`grafana.kooked.ch`)"
+    #   traefik.http.routers.grafana_web.entrypoints: "websecure"
+    #   traefik.http.routers.grafana_web.tls.certresolver: "letsencrypt"
+    #   traefik.http.services.grafana_web.loadbalancer.server.port: "80"
+    #   traefik.http.middlewares.mywwwredirect.redirectregex.regex: "^https://www\\.(.*)"
+    #   traefik.http.middlewares.mywwwredirect.redirectregex.replacement: "https://$${1}"
+    #   traefik.http.routers.grafana_web.middlewares: "mywwwredirect"
+
+  become: true

@@ -1,0 +1,42 @@
+- name: Stop Docker service
+  service:
+    name: docker
+    state: stopped
+  become: true
+
+- name: Create Traefik Docker network
+  docker_network:
+    name: traefik_network
+    state: present
+
+- name: Create directory for Traefik in /srv
+  file:
+    path: /srv/traefik
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0755"
+  become: true
+
+- name: Copy Traefik configuration file
+  copy:
+    src: traefik.yml
+    dest: /srv/traefik/traefik.yml
+  become: true
+
+- name: Restart Traefik container if configuration has changed
+  docker_container:
+    name: traefik
+    image: traefik:v3.0
+    restart_policy: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "/srv/traefik/:/etc/traefik"
+      - "/srv/traefik/acme:/acme"
+    networks:
+      - name: traefik_network
+  become: true

@@ -1,0 +1,39 @@
+- include_vars: setup-vars.yml
+
+- name: Make sure we have a 'admin' group
+  ansible.builtin.group:
+    name: admin
+    state: present
+  become: true
+
+- name: Make sure we have a 'docker' group
+  ansible.builtin.group:
+    name: docker
+    state: present
+  become: true
+
+- name: Allows sudo with no password
+  community.general.sudoers:
+    name: "allows-sudo-with-no-password"
+    user: "%admin"
+    commands: NOPASSWD:ALL
+  with_items: "{{ users }}"
+  become: true
+
+- name: Create Users
+  ansible.builtin.user:
+    name: "{{ item.username }}"
+    groups:
+      - admin
+      - docker
+    shell: /bin/bash
+  loop: "{{ users }}"
+  become: true
+
+- name: Set authorized keys
+  ansible.posix.authorized_key:
+    user: "{{ item.username }}"
+    state: present
+    key: "https://github.com/{{ item.github }}.keys"
+  loop: "{{ users }}"
+  become: true
